@@ -19,6 +19,7 @@
 		<title> Регистрация </title>
 		
 		<script src="https://code.jquery.com/jquery-1.8.3.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/aes.js"></script>
 		<link rel="stylesheet" href="style.css">
 	</head>
 	<body>
@@ -58,6 +59,26 @@
 		</div>
 		
 		<script>
+			const secretKey = "qazxcwedcvfrtgbn"
+
+
+			function encryptAES(data, key){
+				var keyHash = CryptoJS.MD5(key);
+				var keyBytes = CryptoJS.enc.Hex.parse(keyHash.toString());
+
+				var iv = CryptoJS.lib.WordArray.random(16);
+
+				var encrypted = CryptoJS.AES.encrypt(data, keyBytes, {
+					iv: iv,
+					mode: CryptoJS.mode.CBC,
+					padding: CryptoJS.pad.Pkcs7,
+				});
+
+				var combined = iv.concat(encrypted.ciphertext);
+
+				return CryptoJS.enc.Base64.stringify(combined);
+			}
+
 			var loading = document.getElementsByClassName("loading")[0];
 			var button = document.getElementsByClassName("button")[0];
 			
@@ -65,6 +86,8 @@
 				var _login = document.getElementsByName("_login")[0].value;
 				var _password = document.getElementsByName("_password")[0].value;
 				var _passwordCopy = document.getElementsByName("_passwordCopy")[0].value;
+
+				
 				
 				if(_login != "") {
 					if(_password != "") {
@@ -73,8 +96,11 @@
 							button.className = "button_diactive";
 							
 							var data = new FormData();
+							_login = encryptAES(_login, secretKey);
+							_password = encryptAES(_password, secretKey);
 							data.append("login", _login);
 							data.append("password", _password);
+							
 							
 							// AJAX запрос
 							$.ajax({
