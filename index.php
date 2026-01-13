@@ -10,6 +10,8 @@
 		
 		<link rel="stylesheet" href="style.css">
 		<script src="https://code.jquery.com/jquery-1.8.3.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/aes.js"></script>
+
 	</head>
 	<body>
 		<div class="top-menu">
@@ -79,12 +81,36 @@
 		</div>
 	</body>
 	<script>
+
+		const secretKey = "qazxcwedcvfrtgbn"
+
+
+		function encryptAES(data, key){
+			var keyHash = CryptoJS.MD5(key);
+			var keyBytes = CryptoJS.enc.Hex.parse(keyHash.toString());
+
+			var iv = CryptoJS.lib.WordArray.random(16);
+
+			var encrypted = CryptoJS.AES.encrypt(data, keyBytes, {
+				iv: iv,
+				mode: CryptoJS.mode.CBC,
+				padding: CryptoJS.pad.Pkcs7,
+			});
+
+			var combined = iv.concat(encrypted.ciphertext);
+
+			return CryptoJS.enc.Base64.stringify(combined);
+		}
+
 		function SendMessage(sender) {
 			let Message = sender.parentElement.children[0].value;
 			let IdPost = sender.parentElement.id;
 			if(Message == "") return;
 
 			var Data = new FormData();
+
+			Message = encryptAES(Message, secretKey);
+			IdPost = encryptAES(IdPost, secretKey);
 			Data.append("Message", Message);
 			Data.append("IdPost", IdPost);
 			
