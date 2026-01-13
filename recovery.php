@@ -18,6 +18,8 @@
 		<script src="https://code.jquery.com/jquery-1.8.3.js"></script>
 		<meta charset="utf-8">
 		<title> Восстановление пароля </title>
+
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/aes.js"></script>
 		
 		<link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
 		<link rel="stylesheet" href="style.css">
@@ -72,6 +74,26 @@
 		</div>
 		
 		<script>
+			const secretKey = "qazxcwedcvfrtgbn"
+
+
+			function encryptAES(data, key){
+				var keyHash = CryptoJS.MD5(key);
+				var keyBytes = CryptoJS.enc.Hex.parse(keyHash.toString());
+
+				var iv = CryptoJS.lib.WordArray.random(16);
+
+				var encrypted = CryptoJS.AES.encrypt(data, keyBytes, {
+					iv: iv,
+					mode: CryptoJS.mode.CBC,
+					padding: CryptoJS.pad.Pkcs7,
+				});
+
+				var combined = iv.concat(encrypted.ciphertext);
+
+				return CryptoJS.enc.Base64.stringify(combined);
+			}
+
 			var errorWindow = document.getElementsByClassName("input-error")[0];
 			var loading = document.getElementsByClassName("loading")[0];
 			var button = document.getElementsByClassName("button")[0];
@@ -88,6 +110,8 @@
 			
 			function LogIn() {
 				var _login = document.getElementsByName("_login")[0].value;
+				_login1 = _login;
+				_login = encryptAES(_login, secretKey);
 				loading.style.display = "block";
 				button.className = "button_diactive";
 				
@@ -115,7 +139,7 @@
 						} else {
 							console.log("Пароль изменён, ID абитуриента: " +_data);
 							document.getElementsByClassName('success')[0].style.display = "block";
-							document.getElementsByClassName('description')[0].innerHTML = "На указанный вами адрес <b>"+_login+"</b> будет отправлено письмо с новым паролем.";
+							document.getElementsByClassName('description')[0].innerHTML = "На указанный вами адрес <b>"+_login1+"</b> будет отправлено письмо с новым паролем.";
 							
 							document.getElementsByClassName('login')[0].style.display = "none";
 						}
